@@ -58,10 +58,6 @@ if uploaded_file is not None:
         # Remove empty rows (rows where all required columns are NaN)
         df = df.dropna(subset=["Item ID", "Variation ID", "quantity"], how='all')
         
-        # Display preview
-        st.subheader("📊 Data Preview")
-        st.dataframe(df[["Item ID", "Variation ID", "quantity"]].head(10))
-        
         # Process button
         if st.button("🚀 Process and Merge PDFs", type="primary"):
             with st.spinner("Processing PDFs..."):
