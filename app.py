@@ -27,21 +27,40 @@ if uploaded_file is not None:
         # Read the Item Summary sheet
         df = pd.read_excel(uploaded_file, sheet_name="Item Summary")
         
-        # Check for required columns
-        required_columns = ["Item ID", "Variation ID", "quantity"]
-        missing_columns = [col for col in required_columns if col not in df.columns]
+        # Create a mapping of lowercase column names to original column names
+        column_mapping = {col.lower().strip(): col for col in df.columns}
+        
+        # Check for required columns (case-insensitive)
+        required_columns_lower = ["item id", "variation id", "quantity"]
+        required_columns_display = ["Item ID", "Variation ID", "Quantity"]
+        
+        missing_columns = []
+        column_map = {}
+        
+        for req_col_lower, req_col_display in zip(required_columns_lower, required_columns_display):
+            if req_col_lower in column_mapping:
+                column_map[req_col_display] = column_mapping[req_col_lower]
+            else:
+                missing_columns.append(req_col_display)
         
         if missing_columns:
             st.error(f"❌ Error: Missing required columns: {', '.join(missing_columns)}")
             st.info(f"Available columns: {', '.join(df.columns.tolist())}")
             st.stop()
         
+        # Rename columns to standardized names for easier processing
+        df = df.rename(columns={
+            column_map["Item ID"]: "Item ID",
+            column_map["Variation ID"]: "Variation ID",
+            column_map["Quantity"]: "quantity"
+        })
+        
         # Remove empty rows (rows where all required columns are NaN)
         df = df.dropna(subset=["Item ID", "Variation ID", "quantity"], how='all')
         
         # Display preview
         st.subheader("📊 Data Preview")
-        st.dataframe(df[required_columns].head(10))
+        st.dataframe(df[["Item ID", "Variation ID", "quantity"]].head(10))
         
         # Process button
         if st.button("🚀 Process and Merge PDFs", type="primary"):
